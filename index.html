@@ -700,27 +700,27 @@ function renderBookDetail(id) {
     return;
   }
 
-    const btnDl = document.getElementById("dl-btn");
+  const btnDl = document.getElementById("dl-btn");
   const btnRead = document.getElementById("read-btn");
 
   if (btnDl) {
     btnDl.addEventListener("click", (e) => {
       e.preventDefault();
-      const url = dataUrlToBlobUrl(book.file_url);
+      // Utilisation directe de l'URL pour assurer la compatibilité mobile (évite le blocage des blobs sur certains navigateurs)
       const a = document.createElement("a");
-      a.href = url;
+      a.href = book.file_url;
+      a.target = "_blank";
       a.download = slugify(book.title) + ".pdf";
       document.body.appendChild(a);
       a.click();
       a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
-    });
+    })
   }
 
   if (btnRead) {
     btnRead.addEventListener("click", (e) => {
       e.preventDefault();
-      window.open(dataUrlToBlobUrl(book.file_url), "_blank");
+      window.open(book.file_url, "_blank");
     });
   }
 
