@@ -537,6 +537,21 @@ async function addDownload(bookId) {
   } catch { return null; }
 }
 
+/* ====== TÉLÉCHARGEMENT COMPATIBLE MOBILE ====== */
+function dataUrlToBlobUrl(dataUrl) {
+  const [head, b64] = dataUrl.split(",");
+  const mime = head.match(/:(.*?);/)[1];
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return URL.createObjectURL(new Blob([bytes], { type: mime }));
+}
+
+function slugify(str) {
+  return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
 /* ============================================================
    UTILITAIRES
    ============================================================ */
@@ -685,6 +700,30 @@ function renderBookDetail(id) {
     return;
   }
 
+    const btnDl = document.getElementById("dl-btn");
+  const btnRead = document.getElementById("read-btn");
+
+  if (btnDl) {
+    btnDl.addEventListener("click", (e) => {
+      e.preventDefault();
+      const url = dataUrlToBlobUrl(book.file_url);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = slugify(book.title) + ".pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    });
+  }
+
+  if (btnRead) {
+    btnRead.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.open(dataUrlToBlobUrl(book.file_url), "_blank");
+    });
+  }
+
   app.innerHTML = `
     <div class="page-pad">
       <a class="back-link" href="#/library">${ICONS.arrowLeft} Retour</a>
@@ -707,7 +746,7 @@ function renderBookDetail(id) {
             </div>` : ""}
           <div class="detail-actions">
             ${book.file_url ? `
-              <a class="btn btn-primary" href="${book.file_url}" target="_blank" rel="noopener noreferrer">${ICONS.book} Lire maintenant</a>
+             <a class="btn btn-primary" id="read-btn" href="${book.file_url}" target="_blank" rel="noopener noreferrer">${ICONS.book} Lire maintenant</a>
               <a class="btn btn-outline" id="dl-btn" href="${book.file_url}" download>${ICONS.download} Télécharger</a>
             ` : `<p class="unavailable">${ICONS.heart} Fichier non disponible pour le moment.</p>`}
           </div>
